@@ -1,0 +1,58 @@
+version: '3.2'
+
+services:
+
+  couchdb:
+    container_name: couchdb
+    image: apache/couchdb:2.3
+    restart: always
+    ports:
+      - 5984:5984
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+    environment:
+      - 'COUCHDB_USER=admin'
+      - 'COUCHDB_PASSWORD=password'
+    networks:
+      - private
+
+  jupyter:
+    build: ./docker/jupyter
+    image: jupyter_ansible
+    command: jupyter notebook --ip=0.0.0.0 --allow-root --no-browser --NotebookApp.password=sha1:58eaa2e688ae:11fd96685b9203d1256a1e09603c9be4f62c94b6
+    volumes:
+      # - jupyter_data:/home/ansible
+      - ./notebooks/:/code
+    environment:
+      - 'JUPYTER_PASSWORD=sha1:58eaa2e688ae:11fd96685b9203d1256a1e09603c9be4f62c94b6'
+    ports:
+      - 8888:8888
+    networks:
+      - private
+
+  djangorest:
+    build: ./docker/django
+    image: djangorest
+    command: bash -c "python manage.py migrate && python manage.py runscript dbfill && python manage.py runserver 0.0.0.0:8000 --insecure"
+    volumes:
+      - ./django/:/code
+    ports:
+      - 8000:8000
+    networks:
+      - private
+
+  nodered:
+    image: nodered/node-red
+    volumes:
+      - ./flows/:/data/
+    ports:
+      - 1880:1880
+    networks:
+      - private
+
+volumes:
+  couchdb_data:
+  # jupyter_data:
+
+networks:
+  private:

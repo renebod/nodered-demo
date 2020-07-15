@@ -1,0 +1,6 @@
+django
+django-extensions
+django-rest-swagger
+djangorestframework
+djangorestframework-simplejwt
+gunicorn
